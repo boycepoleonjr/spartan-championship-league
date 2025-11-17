@@ -3,7 +3,8 @@
     "allow": [
       "Bash(test:*)",
       "Bash(claude mcp list:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd Claude Code MCP settings for Supabase server\n\nConfigure Claude Code to enable the Supabase MCP server integration,\nallowing AI assistants to interact with the Supabase database.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ]
   },
   "enableAllProjectMcpServers": true,
