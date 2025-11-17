@@ -1,0 +1,241 @@
+# Spartan Championship League - Cursor Rules
+
+## Project Context
+
+This is a competitive Halo Infinite league management system built with Next.js 16 App Router, TypeScript, Supabase, and Tailwind CSS v4. The league features a three-phase tournament structure: Swiss System regular season, Pool Play playoffs, and Double Elimination championship.
+
+## Tech Stack
+
+- **Frontend:** Next.js 16 (App Router), React 19, TypeScript 5
+- **Backend:** Supabase (PostgreSQL + Auth + Storage + Realtime)
+- **Styling:** Tailwind CSS v4
+- **Package Manager:** Yarn
+- **Development:** Cursor IDE with Claude Code integration
+
+## Code Style & Conventions
+
+### TypeScript
+- Use strict mode
+- Prefer type over interface for object types
+- Use explicit return types for functions
+- Avoid `any` - use `unknown` or proper typing
+- Use optional chaining and nullish coalescing
+
+### React/Next.js
+- Use Server Components by default (add 'use client' only when needed)
+- Prefer async Server Components for data fetching
+- Use Server Actions for mutations
+- Co-locate components with their pages when possible
+- Use TypeScript React.FC sparingly; prefer explicit function declarations
+
+### File Naming
+- Components: PascalCase (e.g., `StandingsTable.tsx`)
+- Utilities: camelCase (e.g., `supabaseClient.ts`)
+- Types: PascalCase (e.g., `Match.ts`)
+- Pages: lowercase (e.g., `standings/page.tsx`)
+
+### Component Structure
+```typescript
+// 1. Imports
+import { type ComponentProps } from 'react'
+import { createClient } from '@/lib/supabase'
+
+// 2. Types
+type StandingsProps = {
+  seasonId: string
+}
+
+// 3. Component
+export default async function Standings({ seasonId }: StandingsProps) {
+  // 4. Data fetching (Server Component)
+  const supabase = createClient()
+  const { data } = await supabase
+    .from('standings')
+    .select('*')
+    .eq('season_id', seasonId)
+  
+  // 5. Render
+  return (
+    <div>
+      {/* Component JSX */}
+    </div>
+  )
+}
+```
+
+### Supabase Patterns
+
+#### Server-side Data Fetching
+```typescript
+import { createClient } from '@/lib/supabase/server'
+
+export default async function Page() {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('*, rosters(*, competitors(*))')
+  
+  if (error) throw error
+  return <div>{/* Use data */}</div>
+}
+```
+
+#### Client-side with Realtime
+```typescript
+'use client'
+import { createClient } from '@/lib/supabase/client'
+import { useEffect, useState } from 'react'
+
+export function LiveStandings() {
+  const [standings, setStandings] = useState([])
+  const supabase = createClient()
+  
+  useEffect(() => {
+    const channel = supabase
+      .channel('standings')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'standings' },
+        (payload) => {
+          // Update standings
+        }
+      )
+      .subscribe()
+    
+    return () => { supabase.removeChannel(channel) }
+  }, [])
+}
+```
+
+### Database Schema Reference
+
+**Key Tables:**
+- `organizations` - Teams (id, name, logo_url, region)
+- `competitors` - Players/Coaches (id, gamertag, esr_rating, role)
+- `seasons` - Seasons (id, name, year, status)
+- `rosters` - Team membership (organization_id, competitor_id, season_id)
+- `matches` - Match records (id, phase, best_of, home_team_id, away_team_id)
+- `games` - Individual games (match_id, game_number, map_name, mode)
+- `standings` - Standings (season_id, organization_id, wins, losses, rank)
+
+**Phases:** 'regular_season' | 'pool_play' | 'championship'
+
+**Pool Play:** 4 pools of 4 teams (Pool A, B, C, D) stored in `matches.pool_name`
+
+## Common Tasks
+
+### Creating a New Page
+```bash
+# Create a new route
+mkdir -p src/app/standings
+touch src/app/standings/page.tsx
+```
+
+### Adding a Component
+```bash
+# Create component directory
+mkdir -p src/components/standings
+touch src/components/standings/StandingsTable.tsx
+```
+
+### Database Type Generation (Future)
+```bash
+# Generate TypeScript types from Supabase schema
+npx supabase gen types typescript --project-id your-project-id > src/types/database.ts
+```
+
+## AI Assistant Guidelines
+
+When helping with this codebase:
+
+1. **Always use TypeScript** - Never suggest JavaScript
+2. **Prefer Server Components** - Only use Client Components when needed for interactivity or hooks
+3. **Use proper Supabase patterns** - Different clients for server vs client
+4. **Follow database schema** - Reference the schema tables and relationships
+5. **Consider tournament phases** - Regular season, pool play, championship
+6. **Think mobile-first** - Responsive design is critical
+7. **Use Tailwind CSS v4** - Modern arbitrary values, no JIT prefix needed
+8. **Error handling** - Always handle Supabase errors gracefully
+9. **Loading states** - Add proper loading and skeleton states
+10. **Accessibility** - Use semantic HTML and ARIA labels
+
+## Domain-Specific Terms
+
+- **ESR** - ELO Skill Rating (player skill metric)
+- **CSR** - Competitive Skill Rank (Halo Infinite ranking)
+- **Swiss System** - Tournament format where teams face opponents with similar records
+- **Pool Play** - Round-robin within groups before elimination
+- **Best-of-X** - Match format (e.g., Best-of-3 = first to 2 games wins)
+- **Gamertag** - Player's in-game username
+
+## File Organization Preferences
+
+```
+src/
+├── app/                          # Pages (App Router)
+│   ├── (public)/                 # Public routes group
+│   │   ├── standings/
+│   │   ├── teams/
+│   │   └── schedule/
+│   └── (admin)/                  # Admin routes group (future)
+├── components/
+│   ├── ui/                       # Reusable UI components (shadcn)
+│   ├── standings/                # Feature-specific components
+│   ├── teams/
+│   └── layout/                   # Layout components
+├── lib/
+│   ├── supabase/
+│   │   ├── client.ts             # Client-side Supabase client
+│   │   └── server.ts             # Server-side Supabase client
+│   └── utils.ts                  # Utility functions
+├── types/
+│   ├── database.ts               # Generated Supabase types
+│   └── index.ts                  # Custom types
+└── hooks/                        # Custom React hooks
+    ├── useStandings.ts
+    └── useRealtime.ts
+```
+
+## Testing Considerations (Future)
+
+- Use Vitest for unit tests
+- Use Playwright for E2E tests
+- Test critical paths: standings calculation, match scoring
+- Mock Supabase in tests
+
+## Performance Optimization
+
+- Use Next.js Image component for logos/avatars
+- Implement proper caching strategies
+- Use Supabase RLS for security
+- Optimize database queries with proper indexes (already in schema)
+- Consider React Server Components for better performance
+- Use Suspense boundaries for loading states
+
+## Security Notes
+
+- RLS is enabled on all tables
+- Public read access is currently open (good for MVP)
+- Admin write policies available in `003_admin_auth_policies.sql`
+- Never expose service role key on client
+- Environment variables must start with NEXT_PUBLIC_ for client access
+
+## Deployment Checklist
+
+- [ ] Environment variables set in Vercel
+- [ ] Database migrations run
+- [ ] Storage buckets configured
+- [ ] Admin users created
+- [ ] Build succeeds locally
+- [ ] TypeScript has no errors
+
+## Resources
+
+- [Next.js 16 Docs](https://nextjs.org/docs)
+- [Supabase Docs](https://supabase.com/docs)
+- [Tailwind CSS v4](https://tailwindcss.com/docs)
+- [Database Schema](./database/spartan-championship-league-schema.json)
+
+---
+
+**Current Phase:** MVP Development - Public-facing league website
+**Next Milestone:** Complete standings and schedule pages
