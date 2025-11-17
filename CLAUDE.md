@@ -148,6 +148,57 @@ When completing tasks from `AGENT_TASKS.md`:
 
 ## Development Workflow
 
+### GitHub CLI Usage
+
+**IMPORTANT**: Always check for and use the GitHub CLI (`gh`) for GitHub-related operations when available.
+
+The GitHub CLI provides a more efficient and integrated way to work with GitHub directly from the command line.
+
+**Common GitHub CLI commands:**
+```bash
+# Check if gh is installed
+gh --version
+
+# View repository status and info
+gh repo view
+
+# Create a pull request
+gh pr create --title "Title" --body "Description"
+
+# List pull requests
+gh pr list
+
+# View PR details
+gh pr view [number]
+
+# Check PR status and checks
+gh pr checks
+
+# Merge a pull request
+gh pr merge [number]
+
+# View issues
+gh issue list
+
+# Create an issue
+gh issue create --title "Title" --body "Description"
+
+# View GitHub Actions runs
+gh run list
+
+# View workflow run details
+gh run view [run-id]
+```
+
+**When to use GitHub CLI:**
+- Creating pull requests (instead of using GitHub web UI)
+- Checking PR status and CI/CD results
+- Viewing and managing issues
+- Checking GitHub Actions workflow status
+- Reviewing repository information
+
+**Fallback:** If `gh` is not available, use `git` commands and GitHub web UI as alternatives.
+
 ### Standard Branch Workflow
 
 **IMPORTANT**: Never commit directly to the `main` branch. Always create feature branches.
@@ -179,7 +230,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 # Push to remote
 git push -u origin feature/task-f1-ui-components
 
-# Create PR via GitHub
+# Create PR using GitHub CLI (preferred)
+gh pr create --title "Add UI component library (TASK-F1)" --body "Implements TASK-F1 with complete documentation"
+
+# Or create PR via GitHub web UI if gh is not available
 ```
 
 ### Task Development Process
@@ -191,7 +245,7 @@ git push -u origin feature/task-f1-ui-components
 5. **Document**: Create feature documentation using template
 6. **Commit**: Write descriptive commit messages
 7. **Push**: Push branch to remote
-8. **PR**: Create Pull Request for review
+8. **PR**: Create Pull Request using `gh pr create` (preferred) or GitHub web UI
 
 ### Code Quality Standards
 
@@ -266,6 +320,14 @@ git status                             # Check status
 git add .                              # Stage changes
 git commit -m "message"                # Commit
 git push -u origin branch-name         # Push to remote
+
+# GitHub CLI (use when available)
+gh --version                           # Check if gh is installed
+gh pr create                           # Create pull request
+gh pr list                             # List pull requests
+gh pr checks                           # Check PR status
+gh issue list                          # List issues
+gh repo view                           # View repository info
 
 # Documentation
 cat docs/features/custom-hooks.md     # View custom hooks guide
